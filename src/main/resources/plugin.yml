@@ -1,0 +1,10 @@
+name: GPrivateWorlds
+version: '${version}'
+main: org.giancpz.gprivateworlds.Main
+api-version: '1.13'
+
+commands:
+    privateworld:
+        description: privateworld
+        aliases: pw
+        usage: /<command> <create|home|visit|accept|invite>
