@@ -1,1 +1,2 @@
-### GPrivate Worlds es un plugin para que los usuarios en tu servidor creen mundos privados.
+# About 
+GPrivateWorlds is a Minecraft plugin that allows players to create and visit private worlds.
