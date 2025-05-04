@@ -33,7 +33,7 @@ public class Utils
         return false;
     }
 
-    public static boolean IsOwner(String player)
+    public static boolean AsyncIsOwner(String player)
     {
         Internal.PlayerInfo p = AsyncGetPlayerInfoWithName(player);
         Internal.WorldInfo w = Internal.getWorldInfo(p.WorldUUID);
@@ -44,12 +44,13 @@ public class Utils
     public static boolean AsyncHasWorld(String player)
     {
         Internal.PlayerInfo playerInfo = AsyncGetPlayerInfoWithName(player);
-        return playerInfo != null;
+
+        return playerInfo.WorldUUID != null;
     }
 
     public static boolean AsyncHasWorld(Internal.PlayerInfo player)
     {
-        return player != null;
+        return player.WorldUUID != null;
     }
 
     public static boolean IsPlayerWorld(World world)
@@ -57,7 +58,6 @@ public class Utils
         WorldInfo w =  Internal.GetLoadedWorldInfo(world);
         return w != null;
     }
-
 
     public static Internal.PlayerInfo AsyncGetPlayerInfo(UUID playerUID)
     {

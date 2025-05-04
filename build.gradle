@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' // Plugin Shadow Jar
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'org.giancpz'
-version = '0.1-SNAPSHOT'
+version = '0.1-beta'
 
 repositories {
     mavenCentral()

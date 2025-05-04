@@ -4,10 +4,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.giancpz.gprivateworlds.Internal.PlayerInfo;
 import org.giancpz.gprivateworlds.Internal.WorldInfo;
-import org.giancpz.gprivateworlds.Utils2.Print;
+
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;

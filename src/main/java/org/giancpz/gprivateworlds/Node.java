@@ -5,9 +5,7 @@ import com.google.common.io.ByteStreams;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.giancpz.gprivateworlds.PluginConfig.Nodemode;
-
 import java.util.ArrayList;
-import java.util.UUID;
 
 public class Node
 {

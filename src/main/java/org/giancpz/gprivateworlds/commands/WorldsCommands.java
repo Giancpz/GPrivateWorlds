@@ -1,13 +1,10 @@
 package org.giancpz.gprivateworlds.commands;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.giancpz.gprivateworlds.Internal;
-import org.giancpz.gprivateworlds.JoinManager;
-import org.giancpz.gprivateworlds.Main;
+import org.giancpz.gprivateworlds.*;
 import org.jetbrains.annotations.NotNull;
 
 public class WorldsCommands implements CommandExecutor
@@ -32,9 +29,26 @@ public class WorldsCommands implements CommandExecutor
                     }
                 }
 
+                if (strings[0].equals("setspawn")) {
+                    AdminWorld.SetSpawn(player);
+                }
+
                 if (strings[0].equals("invite")) {
                     if (strings.length > 1) {
                         JoinManager.AddTask(JoinManager.Task.taskType.INVITE, player.getName(), strings[1]);
+                    }
+                }
+
+            // TEMPORAL
+                if (strings[0].equals("kick")) {
+                    if (strings.length > 1) {
+                        Internal.AddManagerTask(null, player.getName(), strings[1], Queue.TaskInfo.TaskType.DELETE_PLAYER, "");
+                    }
+                }
+            // TEMPORAL
+                if (strings[0].equals("leave")) {
+                    if (strings.length > 1) {
+                        Internal.AddManagerTask(null, player.getName(), strings[1], Queue.TaskInfo.TaskType.DELETE_PLAYER, "");
                     }
                 }
 

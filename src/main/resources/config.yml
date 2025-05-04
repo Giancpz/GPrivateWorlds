@@ -18,9 +18,9 @@ world-limit:
     ny: -32
     z: 64
 
-spawn-location:
+default-spawn-location:
     x: 0
-    y: 100
+    y: 10
     z: 0
 
 # Note: Case-insensitive: does not matter if uppercase or lowercase
@@ -33,7 +33,6 @@ game-rules:
     # - 'doMobLoot false'
     # - 'fallDamage false'
 
-spawn-mobs: false
 multi-member: true
 accept-visit: true
 enabled-pvp: false

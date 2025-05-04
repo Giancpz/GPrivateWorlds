@@ -1,6 +1,9 @@
 package org.giancpz.gprivateworlds;
 
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,7 +15,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.WorldInitEvent;
-import org.giancpz.gprivateworlds.Utils2.Print;
 
 public class mListener implements Listener
 {
@@ -26,6 +28,7 @@ public class mListener implements Listener
     @EventHandler
     public void onAsyncJoin(AsyncPlayerPreLoginEvent e)
     {
+        Print.debug(e.getUniqueId().toString());
         Internal.PlayerInfo p = Utils.AsyncGetPlayerInfo(e.getUniqueId());
 
         if(p != null) {
@@ -65,6 +68,13 @@ public class mListener implements Listener
             World w = p.getWorld();
             if(Utils.IsPlayerWorld(w))
             {
+                Location loc = w.getSpawnLocation();
+                Block block = w.getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
+
+                if(block.isEmpty() || block.isLiquid()) {
+                    block.setType(Material.GLASS);
+                }
+
                 p.teleport(w.getSpawnLocation());
             }
         }

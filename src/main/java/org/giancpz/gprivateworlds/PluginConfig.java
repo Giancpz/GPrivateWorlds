@@ -17,6 +17,7 @@ public class PluginConfig
     boolean SpawnMobs;
     boolean MultiMembers;
     boolean AcceptVisits;
+    boolean debug = false;
     SpawnLocation spawnLocation;
     Mysql mysql = new Mysql();
     Ftpconfig ftpconfig = new Ftpconfig();
@@ -123,6 +124,8 @@ public class PluginConfig
         options.SpawnMobs = config.getBoolean("spawn-mobs");
         options.MultiMembers = config.getBoolean("multi-members");
         options.AcceptVisits = config.getBoolean("accept-visit");
+
+        options.debug = config.getBoolean("debug");
     }
 
     public static PluginConfig Options()

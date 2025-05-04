@@ -2,7 +2,6 @@ package org.giancpz.gprivateworlds;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.giancpz.gprivateworlds.Utils2.Print;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -36,6 +35,7 @@ public class JoinManager
 
     private void Invite(Task task)
     {
+        Player player = Bukkit.getPlayer(task.name1);
         PlayerInfo pi1 = Utils.AsyncGetPlayerInfoWithName(task.name1);
         WorldInfo wi1 = getWorldInfo(pi1.WorldUUID);
 
@@ -45,23 +45,22 @@ public class JoinManager
             // If is owner
             if (wi1.playerOwnerUID.equals(pi1.playerUID))
             {
-                PlayerInfo pi2 = Utils.AsyncGetPlayerInfoWithName(task.name2);
-                if (pi2 == null)
+                if (!Utils.AsyncHasWorld(task.name2))
                 {
                     SendInvitation(task.name1, task.name2);
-                    Print.debug("Jugador invitado");
+                    player.sendMessage("Player invited");
                 } else {
-                    Print.debug("El jugador ya tiene mundo");
+                    player.sendMessage("The player you invite already belongs to a world");
                 }
             }
             else
             {
-                Print.debug("No eres dueño");
+                player.sendMessage("You do not own a world");
             }
         }
         else
         {
-            Print.debug("No tienes mundo");
+            player.sendMessage("you don't have a world");
         }
     }
 
@@ -88,12 +87,13 @@ public class JoinManager
         }
 
         if(count == 0 ) {
-            Print.debug("No tienes invitaciones :(");
+            Print.debug("No invitations to accept");
         }
 
         if(count == 1)
         {
             Invitation invitation = invitations.get(0);
+            invitations.remove(invitation);
             Print.debug(invitation.from + " to: " + invitation.to);
             AcceptInvitation(invitation.from, invitation.to);
         }
@@ -108,14 +108,16 @@ public class JoinManager
         if (Utils.AsyncHasWorld(from))
         {
             // If from is owner
-            if(Utils.IsOwner(from))
+            if(Utils.AsyncIsOwner(from))
             {
                 // If TO no has world
                 //Internal.PlayerInfo toinfo = Internal.getPlayerInfoWithName(to);
-                if (Utils.AsyncHasWorld(to))
+                if (!Utils.AsyncHasWorld(to))
                 {
                     PlayerInfo FromInfo = Utils.AsyncGetPlayerInfoWithName(from);
                     AdminWorld.AddMember(getWorldInfo(FromInfo.WorldUUID), Utils.AsyncGetPlayerInfoWithName(to));
+                    Player player = Bukkit.getPlayer(to);
+                    player.sendMessage("Accepted invitation");
                 }
             }
         }

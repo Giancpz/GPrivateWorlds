@@ -6,7 +6,6 @@ import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 import org.codehaus.plexus.util.FileUtils;
 import org.giancpz.gprivateworlds.Queue.TaskInfo;
-import org.giancpz.gprivateworlds.Utils2.Print;
 import org.giancpz.gprivateworlds.WorldOptions.*;
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +17,7 @@ public class Internal
     public static void AddManagerTask(Player player, String ExecutePlayerName, String toPlayer, TaskInfo.TaskType taskType, String otherparam)
     {
         TaskInfo task = new TaskInfo(taskType);
-        task.playerWorld = toPlayer;
+        task.SecondPlayer = toPlayer;
         task.ExecutePlayer = player;
         task.ExecutePlayerName = ExecutePlayerName;
         task.otherparam = otherparam;
@@ -65,6 +64,7 @@ public class Internal
             worldInfo.world = world;
 
             if(world != null) {
+
                 world.setSpawnLocation(worldInfo.spawnLocation.x, worldInfo.spawnLocation.y, worldInfo.spawnLocation.z);
                 //world.setViewDistance(PluginOptions.Options().ViewDistance);
                 //world.setSimulationDistance(PluginOptions.Options().SimulationDistance);
@@ -119,9 +119,13 @@ public class Internal
         worldInfo.creationDate.day = (short)localDate.getDayOfMonth();
         worldInfo.creationDate.month = (short)localDate.getMonthValue();
         worldInfo.creationDate.year = (short)localDate.getYear();
-        worldInfo.spawnLocation.set(PluginConfig.Options().spawnLocation.x,
-                                    PluginConfig.Options().spawnLocation.y,
-                                    PluginConfig.Options().spawnLocation.z);
+
+        worldInfo.spawnLocation.set(
+                PluginConfig.Options().spawnLocation.x,
+                PluginConfig.Options().spawnLocation.y,
+                PluginConfig.Options().spawnLocation.z);
+
+
         worldInfo.checkSum = Main.Singleton().templatechecksum;
 
         SaveLoadData.SaveWorldInfo(worldInfo);

@@ -1,6 +1,4 @@
-package org.giancpz.gprivateworlds.Utils2;
-
-import org.giancpz.gprivateworlds.Main;
+package org.giancpz.gprivateworlds;
 
 public class Print
 {
@@ -16,6 +14,8 @@ public class Print
 
     public static void debug(String message)
     {
-        Main.Singleton().getLogger().info("[DEBUG] " + message);
+        if(PluginConfig.Options().debug){
+            Main.Singleton().getLogger().info("[DEBUG] " + message);
+        }
     }
 }

@@ -2,9 +2,11 @@ package org.giancpz.gprivateworlds;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.giancpz.gprivateworlds.Utils2.Print;
+
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -32,11 +34,10 @@ public class Queue
                 }
 
                 if (task.taskType == TaskInfo.TaskType.TELEPORT || task.taskType == TaskInfo.TaskType.LOAD) {
-                    Internal.PlayerInfo p = Utils.AsyncGetPlayerInfoWithName(task.playerWorld);
+                    Internal.PlayerInfo p = Utils.AsyncGetPlayerInfoWithName(task.SecondPlayer);
 
                     if (Utils.AsyncHasWorld(p))
                     {
-
                         Internal.WorldInfo worldInfo = Internal.getWorldInfo(p.WorldUUID);
 
                         Bukkit.getScheduler().runTask(Main.Singleton(), () -> {
@@ -53,10 +54,17 @@ public class Queue
                             }
 
                             if (task.taskType.equals(TaskInfo.TaskType.TELEPORT)) {
-                                Location location = new Location(world, 0, 100, 0);
+                                // Location location = new Location(world, 0, 100, 0);
                                 Player player = Bukkit.getPlayer(task.ExecutePlayerName);
-                                if (player != null) {
-                                    player.teleport(location);
+                                if (player != null && world != null) {
+
+                                    Location loc = world.getSpawnLocation();
+                                    Block block = world.getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
+
+                                    if(block.isEmpty() || block.isLiquid()) {
+                                        block.setType(Material.GLASS);
+                                    }
+                                    player.teleport(world.getSpawnLocation());
                                 }
                             }
 
@@ -73,19 +81,37 @@ public class Queue
                         PlayerMessage.Send(task.ExecutePlayerName, "You have no world", task.NodeName);
                     }
                 }
+
+                if(task.taskType == TaskInfo.TaskType.DELETE_PLAYER)
+                {
+                    if(Utils.AsyncHasWorld(task.ExecutePlayerName))
+                    {
+                        if (Utils.AsyncIsOwner(task.ExecutePlayerName))
+                        {
+                            Internal.PlayerInfo playerInfo = Utils.AsyncGetPlayerInfoWithName(task.ExecutePlayerName);
+                            Internal.WorldInfo worldInfo = Internal.getWorldInfo(playerInfo.WorldUUID);
+                            Internal.PlayerInfo playerInfo1 = Utils.AsyncGetPlayerInfoWithName(task.SecondPlayer);
+                            worldInfo.members.remove(playerInfo1.playerUID);
+                            playerInfo1.WorldUUID = null;
+                            SaveLoadData.UpdateWorldInfo(worldInfo);
+                            SaveLoadData.UpdatePlayerInfo(playerInfo1);
+                        }
+                    }
+                }
             }
-        }, 0L, 10L);
+        }, 0L, 5L);
     }
 
     public static class TaskInfo
     {
-        enum TaskType{
+        public enum TaskType{
             TELEPORT,
             CREATE,
-            LOAD
+            LOAD,
+            DELETE_PLAYER
         }
 
-        TaskInfo(TaskType tp)
+        public TaskInfo(TaskType tp)
         {
             taskType = tp;
         }
@@ -94,7 +120,7 @@ public class Queue
 
         public org.bukkit.entity.Player ExecutePlayer;
         public String ExecutePlayerName;
-        public String playerWorld;
+        public String SecondPlayer;
         public String NodeName;
         public String otherparam;
     }
