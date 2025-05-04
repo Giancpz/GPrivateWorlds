@@ -14,7 +14,7 @@ import java.util.concurrent.BlockingQueue;
 public class Queue
 {
     public FTPConnection ftp = new FTPConnection();
-    public ArrayList<TeleportQueue> teleportQueue = new ArrayList<TeleportQueue>();
+    public ArrayList<TeleportQueue> teleportQueue = new ArrayList<>();
     public ArrayList<Internal.WorldInfo> loadedworlds = new ArrayList<>();
 
     private void run() {

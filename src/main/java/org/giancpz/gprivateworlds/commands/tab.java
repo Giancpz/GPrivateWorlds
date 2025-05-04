@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class tab implements TabExecutor
 {
-    private List<String> subcommands = new ArrayList<>(Arrays.asList("create", "visit", "invite", "accept", "home", "kick", "leave", "setspawn"));
+    private final List<String> subcommands = new ArrayList<>(Arrays.asList("create", "visit", "invite", "accept", "home", "kick", "leave", "setspawn"));
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args)

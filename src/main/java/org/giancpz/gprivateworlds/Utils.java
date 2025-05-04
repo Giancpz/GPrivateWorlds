@@ -69,10 +69,13 @@ public class Utils
         return SaveLoadData.loadPlayerInfoWithName(playerName);
     }
 
+    /*
     public static Internal.PlayerInfo AsyncGetPlayerInfo(Player player)
     {
         return SaveLoadData.loadPlayerInfo(player.getUniqueId().toString());
     }
+    */
+     */
 
     public static String WorldUUIDToString(UUID uuid)
     {
