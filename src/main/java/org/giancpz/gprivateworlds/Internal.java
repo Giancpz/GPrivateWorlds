@@ -110,6 +110,7 @@ public class Internal
 
         WorldInfo worldInfo = new WorldInfo();
         LocalDate localDate = LocalDate.now();
+        worldInfo.options.Set(worldInfo.options.TestAllValues);
 
         Internal.PlayerInfo p = Utils.AsyncGetPlayerInfoWithName(playername);
 
@@ -137,9 +138,17 @@ public class Internal
 
     public static void SaveWorld(WorldInfo worldInfo)
     {
+        World world = Bukkit.getWorld("world");
         for (Player player : worldInfo.world.getPlayers())
         {
-            player.kickPlayer("World closed");
+            if(world != null)
+            {
+                player.teleport(world.getSpawnLocation());
+            }
+            else
+            {
+                player.kickPlayer("World closed");
+            }
         }
 
         boolean b = Bukkit.unloadWorld(worldInfo.world, true);
@@ -201,6 +210,7 @@ public class Internal
         public CreationDate creationDate = new CreationDate();
         public List<UUID> members = new ArrayList<>();
         public SpawnLocation spawnLocation = new SpawnLocation();
+        public Options options = new Options();
         public Gamerules gamerules = new Gamerules();
     }
 

@@ -2,20 +2,61 @@ package org.giancpz.gprivateworlds;
 
 import org.bukkit.GameRule;
 import org.bukkit.World;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class WorldOptions
 {
-    public static class Gamerules
+    public static class Options
     {
-        List<String> gamerules = new ArrayList<String>();
+        public boolean Visibility = true;
+        public boolean pvp = false;
+
+        String TestAllValues = "pvp:false,visibility:true";
+
+        List<String> values;
+
+        public void Set(String AllValues) {
+            Print.debug("Values " + AllValues);
+            values = Arrays.asList(AllValues.split(","));
+
+            if (!values.isEmpty()) {
+
+                for (String v : values) {
+                    String[] dat = v.split(" ");
+
+                    if (dat.length >= 2) {
+                        String key = dat[0];
+                        String value = dat[1];
+                        switch (key) {
+                            case "visibility":
+                                Visibility = Boolean.parseBoolean(value);
+                                Print.debug("Visibility: " + Visibility);
+                                break;
+                            case "pvp":
+                                pvp = Boolean.parseBoolean(value);
+                                Print.debug("pvp: " + pvp);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        public String ToText() {
+            String str = "pvp " + pvp + ",visibility " + Visibility;
+            Print.debug(str);
+            return str;
+        }
+    }
+
+    public static class Gamerules {
+        List<String> gamerules;
 
         Gamerules()
         {
-            gamerules.add("doDaylightCycle false");
-            gamerules.add("pvp false");
+            gamerules =  PluginConfig.Options().gamerules;
         }
 
         public void SetToWorld(World world)
@@ -30,22 +71,9 @@ public class WorldOptions
                 }
             }
         }
-
-        /*
-        public boolean Value(String key) {
-                for (String par : flags) {
-                    String[] claveValor = par.split(" ");
-                    if (claveValor[0].equals(key)) {
-                        return Boolean.parseBoolean(claveValor[1]);
-                    }
-                }
-            return false;
-        }
-        */
     }
 
-    public static class CreationDate
-    {
+    public static class CreationDate {
         public int month;
         public int day;
         public int year;
@@ -64,8 +92,7 @@ public class WorldOptions
         }
     }
 
-    public static class SpawnLocation
-    {
+    public static class SpawnLocation {
         public int x;
         public int y;
         public int z;

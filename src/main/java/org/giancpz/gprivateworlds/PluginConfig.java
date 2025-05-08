@@ -1,6 +1,9 @@
 package org.giancpz.gprivateworlds;
 
 import org.bukkit.configuration.file.FileConfiguration;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import static org.giancpz.gprivateworlds.WorldOptions.*;
 
@@ -24,6 +27,7 @@ public class PluginConfig
     Storagemethod playerstoragemethod;
     Worldsstoragemethod worldstoragemethod;
     Nodemode nodemode;
+    List<String> gamerules = new ArrayList<>();
 
     String PlayerDataDirectory = "GPrivateWorlds/local/playerdata/";
     String WorldDataDirectory = "GPrivateWorlds/local/worlddata/";
@@ -124,6 +128,8 @@ public class PluginConfig
         options.SpawnMobs = config.getBoolean("spawn-mobs");
         options.MultiMembers = config.getBoolean("multi-members");
         options.AcceptVisits = config.getBoolean("accept-visit");
+
+        options.gamerules = config.getStringList("game-rules");
 
         options.debug = config.getBoolean("debug");
     }

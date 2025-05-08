@@ -6,7 +6,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -26,10 +25,10 @@ public class Queue
                     if(!Utils.AsyncHasWorld(task.ExecutePlayerName)) {
                         boolean b = Internal.internal_CreatePlayerWorld(task.ExecutePlayerName);
                         if (b) {
-                            PlayerMessage.Send(task.ExecutePlayerName, "World created!", task.NodeName);
+                            PlayerMessage.Send(task.ExecutePlayerName, "World created!", PlayerMessage.MessageType.INFO ,task.NodeName);
                         }
                     } else {
-                        PlayerMessage.Send(task.ExecutePlayerName, "You have world", task.NodeName);
+                        PlayerMessage.Send(task.ExecutePlayerName, "You have world", PlayerMessage.MessageType.ERROR , task.NodeName);
                     }
                 }
 
@@ -40,45 +39,54 @@ public class Queue
                     {
                         Internal.WorldInfo worldInfo = Internal.getWorldInfo(p.WorldUUID);
 
-                        Bukkit.getScheduler().runTask(Main.Singleton(), () -> {
+                        // Not MultiNode Mode
+                        if(worldInfo.options.Visibility ||
+                                worldInfo.playerOwnerDisplayName.equals(task.ExecutePlayerName) ||
+                                Utils.IsMember(Bukkit.getPlayer(task.ExecutePlayerName), worldInfo)) {
 
-                            org.bukkit.World world;
+                            Bukkit.getScheduler().runTask(Main.Singleton(), () -> {
 
-                            if (Main.Singleton().queue.loadedworlds.contains(worldInfo)) {
-                                world = worldInfo.world;
-                                Print.debug("World is loaded");
-                            } else {
-                                world = Internal.internal_LoadPlayerWorld(worldInfo);
-                                loadedworlds.add(worldInfo);
-                                Print.debug("Loading world");
-                            }
+                                org.bukkit.World world;
 
-                            if (task.taskType.equals(TaskInfo.TaskType.TELEPORT)) {
-                                // Location location = new Location(world, 0, 100, 0);
-                                Player player = Bukkit.getPlayer(task.ExecutePlayerName);
-                                if (player != null && world != null) {
+                                if (Main.Singleton().queue.loadedworlds.contains(worldInfo)) {
+                                    world = worldInfo.world;
+                                    Print.debug("World is loaded");
+                                } else {
+                                    world = Internal.internal_LoadPlayerWorld(worldInfo);
+                                    loadedworlds.add(worldInfo);
+                                    Print.debug("Loading world");
+                                }
 
-                                    Location loc = world.getSpawnLocation();
-                                    Block block = world.getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
+                                if (task.taskType.equals(TaskInfo.TaskType.TELEPORT)) {
+                                    Player player = Bukkit.getPlayer(task.ExecutePlayerName);
+                                    if (player != null && world != null) {
 
-                                    if(block.isEmpty() || block.isLiquid()) {
-                                        block.setType(Material.GLASS);
+                                        Location loc = world.getSpawnLocation();
+                                        Block block = world.getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
+
+                                        if (block.isEmpty() || block.isLiquid()) {
+                                            block.setType(Material.GLASS);
+                                        }
+                                        player.teleport(world.getSpawnLocation());
                                     }
-                                    player.teleport(world.getSpawnLocation());
                                 }
-                            }
 
-                            if (task.otherparam != null) {
-                                if (task.otherparam.equals("notifyload")) {
-                                    teleportQueue.add(new TeleportQueue(task.ExecutePlayerName, world));
-                                    Main.Singleton().node.Send("central", "bungee-teleport:" + p.playerName);
+                                if (task.otherparam != null) {
+                                    if (task.otherparam.equals("notifyload")) {
+                                        teleportQueue.add(new TeleportQueue(task.ExecutePlayerName, world));
+                                        Main.Singleton().node.Send("central", "bungee-teleport:" + p.playerName);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                        else
+                        {
+                            PlayerMessage.Send(task.ExecutePlayerName, "This world has visits disabled", PlayerMessage.MessageType.ERROR, task.NodeName);
+                        }
                     }
                     else
                     {
-                        PlayerMessage.Send(task.ExecutePlayerName, "You have no world", task.NodeName);
+                        PlayerMessage.Send(task.ExecutePlayerName, "You have no world", PlayerMessage.MessageType.ERROR, task.NodeName);
                     }
                 }
 
@@ -108,7 +116,8 @@ public class Queue
             TELEPORT,
             CREATE,
             LOAD,
-            DELETE_PLAYER
+            DELETE_PLAYER,
+            UPDATE_WORLD_INFO
         }
 
         public TaskInfo(TaskType tp)
@@ -139,7 +148,7 @@ public class Queue
 
     public BlockingQueue<TaskInfo> queue = new ArrayBlockingQueue<>(20);
 
-     public void Thread() {
+    public void Thread() {
          run();
     }
 }

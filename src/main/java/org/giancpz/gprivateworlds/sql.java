@@ -16,7 +16,9 @@ public class sql
     private static final String FIND_PLAYER_BY_NAME = "SELECT * FROM gprivateworlds_players WHERE " + SaveLoadData.PLAYER_NAME_2 + " = ?";
     private static final String INSERT_PLAYER = "INSERT INTO gprivateworlds_players(" + SaveLoadData.PLAYER_UUID_1 + ", " + SaveLoadData.PLAYER_NAME_2 + ", " + SaveLoadData.MEMBER_UUID_3 + ") VALUES(?,?,?)";
     private static final String FIND_WORLD_BY_UUID = "SELECT * FROM gprivateworlds_worlds WHERE " + SaveLoadData.WORLD_UUID_1 + " = ?";
-    private static final String INSERT_WORLD = "INSERT INTO gprivateworlds_worlds(" + SaveLoadData.WORLD_UUID_1 + ", " + SaveLoadData.OWNER_UUID_2 + ", " + SaveLoadData.OWNER_NAME_3 + ", " + SaveLoadData.MEMBERS_UUID_4 + ", " + SaveLoadData.SPAWN_LOCATION_5 + ", " + SaveLoadData.CREATION_DATE_6 + ", " + SaveLoadData.GAMERULES_7 + ", " + SaveLoadData.CHECKSUM_8 + ") VALUES(?,?,?,?,?,?,?,?)";
+    private static final String INSERT_WORLD = "INSERT INTO gprivateworlds_worlds(" + SaveLoadData.WORLD_UUID_1 + ", " + SaveLoadData.OWNER_UUID_2 + ", " + SaveLoadData.OWNER_NAME_3 + ", " + SaveLoadData.MEMBERS_UUID_4 + ", " + SaveLoadData.SPAWN_LOCATION_5 + ", " + SaveLoadData.CREATION_DATE_6 + ", " + SaveLoadData.OPTIONS_7 + ", " + SaveLoadData.CHECKSUM_8 + ") VALUES(?,?,?,?,?,?,?,?)";
+
+    private static final String DELETE_WORLD = "DELETE FROM gprivateworlds_worlds WHERE " + SaveLoadData.WORLD_UUID_1 + " = ?";
 
     private static final String UPDATE_WORLD = "UPDATE gprivateworlds_worlds "
             + "SET "
@@ -25,7 +27,7 @@ public class sql
             + SaveLoadData.MEMBERS_UUID_4 + " = ?, "
             + SaveLoadData.SPAWN_LOCATION_5 + " = ?, "
             + SaveLoadData.CREATION_DATE_6 + " = ?, "
-            + SaveLoadData.GAMERULES_7 + " = ?, "
+            + SaveLoadData.OPTIONS_7 + " = ?, "
             + SaveLoadData.CHECKSUM_8 + " = ? "
             + "WHERE " + SaveLoadData.WORLD_UUID_1 + " = ?";
 
@@ -66,13 +68,20 @@ public class sql
                         + "`" + SaveLoadData.MEMBERS_UUID_4 + "` VARCHAR(256) NOT NULL, "
                         + "`" + SaveLoadData.SPAWN_LOCATION_5 + "` VARCHAR(64) NOT NULL, "
                         + "`" + SaveLoadData.CREATION_DATE_6 + "` VARCHAR(16) NOT NULL, "
-                        + "`" + SaveLoadData.GAMERULES_7 + "` VARCHAR(256) NOT NULL, "
+                        + "`" + SaveLoadData.OPTIONS_7 + "` VARCHAR(256) NOT NULL, "
                         + "`" + SaveLoadData.CHECKSUM_8 + "` VARCHAR(256) NOT NULL, "
                         + "PRIMARY KEY (`" + SaveLoadData.WORLD_UUID_1 + "`)) ENGINE = InnoDB;";
 
-                    Statement statement = dataSource.getConnection().createStatement();
-                    statement.execute(sql_players);
-                    statement.execute(sql_worlds);
+                Statement statement = dataSource.getConnection().createStatement();
+
+                ResultSet resultado = statement.executeQuery("SHOW COLUMNS FROM `gprivateworlds_worlds` LIKE 'gamerules'");
+                if (resultado.next()) {
+                    String sql = "ALTER TABLE `gprivateworlds_worlds` CHANGE COLUMN gamerules options VARCHAR(255);";
+                    statement.executeUpdate(sql);
+                }
+
+                statement.execute(sql_players);
+                statement.execute(sql_worlds);
             }
             else
             {
@@ -96,11 +105,20 @@ public class sql
                         + SaveLoadData.MEMBERS_UUID_4 + " VARCHAR(256) NOT NULL,"
                         + SaveLoadData.SPAWN_LOCATION_5 + " VARCHAR(64) NOT NULL,"
                         + SaveLoadData.CREATION_DATE_6 + " VARCHAR(16) NOT NULL,"
-                        + SaveLoadData.GAMERULES_7 + " VARCHAR(256) NOT NULL,"
+                        + SaveLoadData.OPTIONS_7 + " VARCHAR(256) NOT NULL,"
                         + SaveLoadData.CHECKSUM_8 + " VARCHAR(256) NOT NULL,"
                         + "PRIMARY KEY (" + SaveLoadData.WORLD_UUID_1 + "));";
 
                 Statement statement = dataSource.getConnection().createStatement();
+
+                String verificarSQL = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'GPRIVATEWORLDS_WORLDS' AND COLUMN_NAME = 'GAMERULES';";
+                ResultSet resultado = statement.executeQuery(verificarSQL);
+
+                if (resultado.next()) { // Si la columna existe, cambiar el nombre
+                    String cambiarSQL = "ALTER TABLE gprivateworlds_worlds RENAME COLUMN gamerules TO options;";
+                    statement.executeUpdate(cambiarSQL);
+                }
+
                 statement.execute(sql_players);
                 statement.execute(sql_worlds);
             }
@@ -133,9 +151,15 @@ public class sql
 
             try (ResultSet results = statement.executeQuery()) {
                 if (results.next()) {
+                    String memberuuid = results.getString(SaveLoadData.MEMBER_UUID_3);
+                    UUID value;
+                    if(memberuuid.equals("none"))
+                        value = null;
+                    else
+                        value = UUID.fromString(memberuuid);
                     return new PlayerInfo(
                             results.getString(SaveLoadData.PLAYER_NAME_2), UUID.fromString(results.getString(SaveLoadData.PLAYER_UUID_1)),
-                            UUID.fromString(results.getString(SaveLoadData.MEMBER_UUID_3)));
+                            value);
                 }
             }
             return null;
@@ -193,7 +217,6 @@ public class sql
             statement.setString(3, playerinfo.playerUID.toString());
 
             int filasActualizadas =  statement.executeUpdate();
-            System.out.println("Filas actualizadas: " + filasActualizadas);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -213,23 +236,13 @@ public class sql
                     worldInfo.uuid = UUID.fromString(results.getString(SaveLoadData.WORLD_UUID_1));
                     worldInfo.playerOwnerUID = UUID.fromString(results.getString(SaveLoadData.OWNER_UUID_2));
                     worldInfo.playerOwnerDisplayName = results.getString(SaveLoadData.OWNER_NAME_3);
-
-                    /*
-                    List<String> stringList = new ArrayList<>(Arrays.asList(results.getString(SaveLoadData.MEMBERS_UUID_4).split(";")));
-
-                    worldInfo.members = stringList.stream()
-                            .map(UUID::fromString)
-                            .collect(Collectors.toList());
-                     */
-
-                    //worldInfo.members = new ArrayList<>(Arrays.asList(results.getString(SaveLoadData.MEMBERS_UUID_4).split(";")))
-
                     worldInfo.spawnLocation.toObject(results.getString(SaveLoadData.SPAWN_LOCATION_5));
                     worldInfo.creationDate.toObject(results.getString(SaveLoadData.CREATION_DATE_6));
-                    //worldInfo.gamerules.optionsString = results.getString(SaveLoadData.OPTIONS_7);
+
+                    worldInfo.options.Set(results.getString(SaveLoadData.OPTIONS_7));
+
                     worldInfo.checkSum = results.getString(SaveLoadData.CHECKSUM_8);
 
-                    System.out.println("deded edde " + worldInfo.uuid);
                     return worldInfo;
                 }
             }
@@ -245,11 +258,9 @@ public class sql
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPDATE_WORLD)) {
 
-            //statement.setString(1, worldInfo.worldUUID);
             statement.setString(1, worldInfo.playerOwnerUID.toString());
             statement.setString(2, worldInfo.playerOwnerDisplayName);
 
-            // Convertir a lista de String
             List<String> stringList = worldInfo.members.stream()
                     .map(UUID::toString)
                     .collect(Collectors.toList());
@@ -257,12 +268,23 @@ public class sql
             statement.setString(3, String.join(";", stringList));
             statement.setString(4, worldInfo.spawnLocation.toText());
             statement.setString(5, worldInfo.creationDate.toText());
-            statement.setString(6, "options here");
+            statement.setString(6, worldInfo.options.ToText());
             statement.setString(7, worldInfo.checkSum);
             statement.setString(8, worldInfo.uuid.toString());
 
-            int filasActualizadas =  statement.executeUpdate();
-            System.out.println("Filas actualizadas: " + filasActualizadas);
+            statement.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void DeleteWorldInfo(WorldInfo worldInfo)
+    {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(DELETE_WORLD)) {
+            statement.setString(1, worldInfo.uuid.toString());
+            statement.executeUpdate();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -280,13 +302,13 @@ public class sql
 
             statement.setString(4, String.join(";",
                     worldInfo.members.stream()
-                            .map(UUID::toString) // Convierte cada UUID a String
-                            .toArray(String[]::new) // Convierte la lista a un array
+                            .map(UUID::toString)
+                            .toArray(String[]::new)
             ));
 
             statement.setString(5, worldInfo.spawnLocation.toText());
             statement.setString(6, worldInfo.creationDate.toText());
-            statement.setString(7, "options here");
+            statement.setString(7, worldInfo.options.ToText());
             statement.setString(8, worldInfo.checkSum);
 
             statement.executeUpdate();

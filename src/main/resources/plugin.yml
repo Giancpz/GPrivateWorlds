@@ -7,4 +7,4 @@ commands:
     privateworld:
         description: privateworld
         aliases: pw
-        usage: /<command> <create|home|visit|accept|invite|kick|leave|setspawn>
+        usage: /<command> <create|home|visit|accept|invite|kick|leave|setspawn|delete>

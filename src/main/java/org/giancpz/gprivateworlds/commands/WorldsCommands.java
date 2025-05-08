@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.giancpz.gprivateworlds.*;
+import org.jetbrains.annotations.Async;
 import org.jetbrains.annotations.NotNull;
 
 public class WorldsCommands implements CommandExecutor
@@ -19,23 +20,33 @@ public class WorldsCommands implements CommandExecutor
                     Main.Singleton().node.CreateWorld(player.getName());
                 }
 
+                if(strings[0].equals("menu"))
+                {
+                    GUI.OpenWorldMenu(player);
+                    return true;
+                }
+
                 if (strings[0].equals("home")) {
                     Main.Singleton().node.TeleportToWorld(player.getName(), player.getName());
+                    return true;
                 }
 
                 if (strings[0].equals("visit")) {
                     if (strings.length > 1) {
                         Main.Singleton().node.TeleportToWorld(player.getName(), strings[1]);
+                        return true;
                     }
                 }
 
                 if (strings[0].equals("setspawn")) {
                     AdminWorld.SetSpawn(player);
+                    return true;
                 }
 
                 if (strings[0].equals("invite")) {
                     if (strings.length > 1) {
-                        JoinManager.AddTask(JoinManager.Task.taskType.INVITE, player.getName(), strings[1]);
+                        Main.Singleton().joinManager.Invite(player, strings[1]);
+                        return true;
                     }
                 }
 
@@ -43,22 +54,38 @@ public class WorldsCommands implements CommandExecutor
                 if (strings[0].equals("kick")) {
                     if (strings.length > 1) {
                         Internal.AddManagerTask(null, player.getName(), strings[1], Queue.TaskInfo.TaskType.DELETE_PLAYER, "");
+                        return true;
+                    }
+                }
+
+                // TEMPORAL
+                if (strings[0].equals("delete"))
+                {
+                    if (strings.length > 1)
+                    {
+                        if(strings[1].equals("confirm"))
+                        {
+                            AdminWorld.AsyncDeleteWorld(player);
+                        }
+                    }
+                    else
+                    {
+                        PlayerMessage.Send(player, "This command will delete your world forever!", PlayerMessage.MessageType.ERROR);
+                        PlayerMessage.Send(player, "Use /pw delete confirm", PlayerMessage.MessageType.ERROR);
                     }
                 }
             // TEMPORAL
                 if (strings[0].equals("leave")) {
-                    if (strings.length > 1) {
-                        Internal.AddManagerTask(null, player.getName(), strings[1], Queue.TaskInfo.TaskType.DELETE_PLAYER, "");
-                    }
+                    AdminWorld.AsyncLeave(player);
                 }
 
                 if (strings[0].equals("accept")) {
                     if (strings.length > 1) {
-                        JoinManager.AddTask(JoinManager.Task.taskType.ACCEPT, player.getName(), strings[1]);
+                        Main.Singleton().joinManager.Accept(player, strings[1]);
                         return true;
                     }
                     else {
-                        JoinManager.AddTask(JoinManager.Task.taskType.ACCEPT, player.getName(), null);
+                        Main.Singleton().joinManager.Accept(player,null);
                     }
                     //Main.Singleton().joinManagerOld.Accept(player, null);
                 }

@@ -12,6 +12,11 @@ public class Print
         Main.Singleton().getLogger().severe(message);
     }
 
+    public static void warning(String message)
+    {
+        Main.Singleton().getLogger().warning(message);
+    }
+
     public static void debug(String message)
     {
         if(PluginConfig.Options().debug){

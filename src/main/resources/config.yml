@@ -33,6 +33,10 @@ game-rules:
     # - 'doMobLoot false'
     # - 'fallDamage false'
 
+default-options:
+    - 'pvp false'
+    - 'visibility false'
+
 multi-member: true
 accept-visit: true
 enabled-pvp: false

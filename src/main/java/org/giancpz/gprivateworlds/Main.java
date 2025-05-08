@@ -15,6 +15,7 @@ public final class Main extends JavaPlugin
     public Queue queue;
     public sql db;
     public Node node;
+    public AdminWorld adminWorld;
     public String templatechecksum;
 
     @Override
@@ -27,7 +28,6 @@ public final class Main extends JavaPlugin
         pluginOptions = new PluginConfig();
         PluginConfig.LoadConfig();
         joinManager = new JoinManager();
-        joinManager.Thread();
         queue = new Queue();
         queue.Thread();
         node = new Node();
@@ -73,12 +73,12 @@ public final class Main extends JavaPlugin
                 }
             }
         }
-
-        //org.bstats.bukkit.Metrics metrics = new org.bstats.bukkit.Metrics(this, 25320);
-
-        // Optional: Add custom charts
-        //metrics.addCustomChart(new org.bstats.bukkit.Metrics.SimplePie("chart_id", () -> "My value"));
         getLogger().info("Plugin enabled!");
+
+        int pluginId = 25793; // <-- Replace with the id of your plugin!
+        Metrics metrics = new Metrics(this, pluginId);
+
+        UpdateChecker.Check();
     }
 
     @Override

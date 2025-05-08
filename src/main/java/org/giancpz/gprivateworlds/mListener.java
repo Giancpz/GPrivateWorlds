@@ -1,5 +1,6 @@
 package org.giancpz.gprivateworlds;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -13,8 +14,12 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.WorldInitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 public class mListener implements Listener
 {
@@ -164,5 +169,36 @@ public class mListener implements Listener
                 }
             }
         }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e)
+    {
+        if(e.getWhoClicked() instanceof Player)
+        {
+            if (GUI.Menu.OnMenu(Bukkit.getPlayer(e.getWhoClicked().getUniqueId())))
+            {
+                e.setCancelled(true);
+                ItemStack clicked = e.getCurrentItem();
+                if (clicked == null || clicked.getType() == Material.AIR) return;
+                Player p = (Player) e.getWhoClicked();
+                GUI.OnItem(p, clicked ,e.getSlot());
+            }
+        }
+    }
+
+    @EventHandler
+    public void OnInventoryClose(InventoryCloseEvent e)
+    {
+        if(e.getPlayer() instanceof Player)
+        {
+            GUI.Menu.remove(Bukkit.getPlayer(e.getPlayer().getUniqueId()));
+        }
+    }
+
+    @EventHandler
+    public void OnPlayerQuit(PlayerQuitEvent e)
+    {
+        GUI.Menu.remove(e.getPlayer());
     }
 }

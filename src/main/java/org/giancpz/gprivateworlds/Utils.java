@@ -23,6 +23,16 @@ public class Utils
         return false;
     }
 
+    public static boolean IsMember(Player player, WorldInfo worldInfo)
+    {
+        if(worldInfo.playerOwnerUID.equals(player.getUniqueId()))
+        {
+            return true;
+        }
+
+        return worldInfo.members.contains(player.getUniqueId());
+    }
+
     public static Boolean IsOwner(Player player, World world)
     {
         WorldInfo w = Internal.GetLoadedWorldInfo(world);

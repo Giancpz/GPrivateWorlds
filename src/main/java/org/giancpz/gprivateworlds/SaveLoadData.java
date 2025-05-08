@@ -17,7 +17,7 @@ public class SaveLoadData
     public static final String MEMBERS_UUID_4 = "members_uuid";
     public static final String SPAWN_LOCATION_5 = "spawn_location";
     public static final String CREATION_DATE_6 = "creation_date";
-    public static final String GAMERULES_7 = "gamerules";
+    public static final String OPTIONS_7 = "options";
     public static final String CHECKSUM_8 = "checksum";
 
     public static WorldInfo loadWorldInfo(UUID worldUUID) {
@@ -31,6 +31,11 @@ public class SaveLoadData
     public static void UpdateWorldInfo(WorldInfo worldInfo)
     {
         Main.Singleton().db.UpdateWorld(worldInfo);
+    }
+
+    public static void DeleteWorldInfo(WorldInfo worldInfo)
+    {
+        Main.Singleton().db.DeleteWorldInfo(worldInfo);
     }
 
     public static PlayerInfo loadPlayerInfo(String playerUID) {

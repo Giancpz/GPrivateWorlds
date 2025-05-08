@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class tab implements TabExecutor
 {
-    private final List<String> subcommands = new ArrayList<>(Arrays.asList("create", "visit", "invite", "accept", "home", "kick", "leave", "setspawn"));
+    private final List<String> subcommands = new ArrayList<>(Arrays.asList("create", "visit", "invite", "accept", "home", "kick", "leave", "setspawn", "delete"));
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args)
@@ -38,19 +38,20 @@ public class tab implements TabExecutor
                 Player player = (Player) sender;
                 Internal.WorldInfo worldInfo = Internal.GetLoadedWorldInfo(player.getWorld());
 
-                List<String> list = new ArrayList<>();
+                if(worldInfo != null) {
 
-                if(worldInfo.members.isEmpty())
-                {
+                    List<String> list = new ArrayList<>();
+
+                    if (worldInfo.members.isEmpty()) {
+                        return list;
+                    }
+
+                    for (UUID uuid : worldInfo.members) {
+                        Print.debug(uuid.toString());
+                        list.add(Bukkit.getOfflinePlayer(uuid).getName());
+                    }
                     return list;
                 }
-
-                for (UUID uuid : worldInfo.members)
-                {
-                    Print.debug(uuid.toString());
-                    list.add(Bukkit.getOfflinePlayer(uuid).getName());
-                }
-                return list;
             }
         }
 
