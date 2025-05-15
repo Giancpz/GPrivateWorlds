@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.giancpz'
-version = '0.3-beta'
+version = '0.4.1-beta'
 
 repositories {
     mavenCentral()
@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT"
+    compileOnly 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
     implementation 'net.kyori:adventure-api:4.11.0'
     implementation 'com.zaxxer:HikariCP:4.0.3'
     implementation 'commons-net:commons-net:3.9.0'
@@ -27,6 +27,9 @@ dependencies {
     implementation 'org.codehaus.plexus:plexus-utils:3.4.1'
     implementation 'com.rabbitmq:amqp-client:5.18.0'
     implementation 'com.h2database:h2:2.1.214'
+    implementation 'dev.dejvokep:boosted-yaml:1.3.5'
+    implementation 'dev.dejvokep:boosted-yaml-spigot:1.5'
+    implementation 'org.bstats:bstats-bukkit:3.0.2'
 }
 
 def targetJavaVersion = 8
@@ -47,14 +50,6 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
-shadowJar {
-    /*
-    minimize {
-        exclude 'com.h2database:h2'
-    }
-    */
-}
-
 processResources {
     def props = [version: version]
     inputs.properties props
@@ -63,3 +58,16 @@ processResources {
         expand props
     }
 }
+
+shadowJar {
+    relocate 'dev.dejvokep.boostedyaml', 'com.gprivateworlds.libs.boostedyaml'
+    relocate 'com.zaxxer.hikari', 'com.gprivateworlds.libs.hikari'
+    relocate 'org.bstats', 'com.gprivateworlds.libs.bstats'
+
+    /*
+    minimize {
+        exclude 'plugin.yml'
+    }
+     */
+}
+

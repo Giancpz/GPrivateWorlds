@@ -6,7 +6,11 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -14,29 +18,41 @@ public class Queue
 {
     public FTPConnection ftp = new FTPConnection();
     public ArrayList<TeleportQueue> teleportQueue = new ArrayList<>();
-    public ArrayList<Internal.WorldInfo> loadedworlds = new ArrayList<>();
+    public LinkedList<Internal.WorldInfo> loadedworlds = new LinkedList<>();
+    private boolean pauseQueue = false;
+    public BukkitTask Queuetask;
+
+    private Long period = 10L;
 
     private void run() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(Main.Singleton(), () -> {
-            TaskInfo task = queue.poll();
+        Queuetask = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.Singleton(), () -> {
+            TaskInfo task;
+
+            if(!pauseQueue) task = queue.poll();
+            else {
+                task = null;
+            }
+
             if (task != null) {
                 if (task.taskType == TaskInfo.TaskType.CREATE)
                 {
                     if(!Utils.AsyncHasWorld(task.ExecutePlayerName)) {
                         boolean b = Internal.internal_CreatePlayerWorld(task.ExecutePlayerName);
                         if (b) {
-                            PlayerMessage.Send(task.ExecutePlayerName, "World created!", PlayerMessage.MessageType.INFO ,task.NodeName);
+                            Messages.Send(Bukkit.getPlayer(task.ExecutePlayerName), Messages.Get().worldCreated, null);
+                            //PlayerMessage.Send(task.ExecutePlayerName, "World created!", PlayerMessage.MessageType.INFO ,task.NodeName);
                         }
                     } else {
-                        PlayerMessage.Send(task.ExecutePlayerName, "You have world", PlayerMessage.MessageType.ERROR , task.NodeName);
+                        Messages.Send(Bukkit.getPlayer(task.ExecutePlayerName), Messages.Get().worldNotCreated, null);
+                        //PlayerMessage.Send(task.ExecutePlayerName, "You have world", PlayerMessage.MessageType.ERROR , task.NodeName);
                     }
                 }
 
                 if (task.taskType == TaskInfo.TaskType.TELEPORT || task.taskType == TaskInfo.TaskType.LOAD) {
-                    Internal.PlayerInfo p = Utils.AsyncGetPlayerInfoWithName(task.SecondPlayer);
 
-                    if (Utils.AsyncHasWorld(p))
+                    if (Utils.AsyncHasWorld(task.SecondPlayer))
                     {
+                        Internal.PlayerInfo p = Utils.AsyncGetPlayerInfoWithName(task.SecondPlayer);
                         Internal.WorldInfo worldInfo = Internal.getWorldInfo(p.WorldUUID);
 
                         // Not MultiNode Mode
@@ -81,33 +97,23 @@ public class Queue
                         }
                         else
                         {
-                            PlayerMessage.Send(task.ExecutePlayerName, "This world has visits disabled", PlayerMessage.MessageType.ERROR, task.NodeName);
+                            //PlayerMessage.Send(task.ExecutePlayerName, "This world has visits disabled", PlayerMessage.MessageType.ERROR, task.NodeName);
+                            Messages.Send(Bukkit.getPlayer(task.ExecutePlayerName),Messages.Get().worldDisabledVisit, null);
                         }
                     }
                     else
                     {
-                        PlayerMessage.Send(task.ExecutePlayerName, "You have no world", PlayerMessage.MessageType.ERROR, task.NodeName);
-                    }
-                }
-
-                if(task.taskType == TaskInfo.TaskType.DELETE_PLAYER)
-                {
-                    if(Utils.AsyncHasWorld(task.ExecutePlayerName))
-                    {
-                        if (Utils.AsyncIsOwner(task.ExecutePlayerName))
-                        {
-                            Internal.PlayerInfo playerInfo = Utils.AsyncGetPlayerInfoWithName(task.ExecutePlayerName);
-                            Internal.WorldInfo worldInfo = Internal.getWorldInfo(playerInfo.WorldUUID);
-                            Internal.PlayerInfo playerInfo1 = Utils.AsyncGetPlayerInfoWithName(task.SecondPlayer);
-                            worldInfo.members.remove(playerInfo1.playerUID);
-                            playerInfo1.WorldUUID = null;
-                            SaveLoadData.UpdateWorldInfo(worldInfo);
-                            SaveLoadData.UpdatePlayerInfo(playerInfo1);
+                        if(task.ExecutePlayerName.equals(task.SecondPlayer)) {
+                            Messages.Send(Bukkit.getPlayer(task.ExecutePlayerName),Messages.Get().worldNotFoundPlayer, null);
+                        } else {
+                            String[] args = {task.SecondPlayer};
+                            Messages.Send(Bukkit.getPlayer(task.ExecutePlayerName),Messages.Get().worldNotFoundTarget, args);
                         }
+                        //PlayerMessage.Send(task.ExecutePlayerName, "You have no world", PlayerMessage.MessageType.ERROR, task.NodeName);
                     }
                 }
             }
-        }, 0L, 5L);
+        }, 120L, period);
     }
 
     public static class TaskInfo
@@ -116,8 +122,6 @@ public class Queue
             TELEPORT,
             CREATE,
             LOAD,
-            DELETE_PLAYER,
-            UPDATE_WORLD_INFO
         }
 
         public TaskInfo(TaskType tp)
@@ -148,7 +152,28 @@ public class Queue
 
     public BlockingQueue<TaskInfo> queue = new ArrayBlockingQueue<>(20);
 
-    public void Thread() {
+    public void Thread()
+    {
+        period = PluginConfig.Options().queuePeriod;
+
+        if(period < 1)
+        {
+            Print.warning("The queue period cannot be less than 1, change value and restart the server");
+            period = 10L;
+        }
+
          run();
+    }
+
+    public void PauseQueue()
+    {
+        pauseQueue = true;
+        Print.warning("QUEUE WAS PAUSED");
+    }
+
+    public void ResumeQueue()
+    {
+        Print.warning("QUEUE WAS RESUMED, GOOD MESSAGE");
+        pauseQueue = false;
     }
 }

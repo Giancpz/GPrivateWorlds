@@ -18,8 +18,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.WorldInitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.giancpz.gprivateworlds.gui.GUIManager;
+
+import java.time.Instant;
 
 public class mListener implements Listener
 {
@@ -30,6 +32,23 @@ public class mListener implements Listener
         w.setKeepSpawnInMemory(false);
         //w.setGameRule(GameRule.,0);
     }
+
+    @EventHandler
+    public void OnWorldJoin(PlayerChangedWorldEvent e)
+    {
+        Print.warning(e.getPlayer().getDisplayName());
+
+        World world = e.getPlayer().getWorld();
+        if(Utils.IsPlayerWorld(world))
+        {
+            Internal.WorldInfo worldInfo = Internal.GetLoadedWorldInfo(world);
+            if(worldInfo != null)
+            {
+                worldInfo.lastPlayer = Instant.now();
+            }
+        }
+    }
+
     @EventHandler
     public void onAsyncJoin(AsyncPlayerPreLoginEvent e)
     {
@@ -52,6 +71,8 @@ public class mListener implements Listener
     {
         Player p = e.getPlayer();
 
+        p.teleport(p.getWorld().getSpawnLocation());
+
         for (Queue.TeleportQueue q : Main.Singleton().queue.teleportQueue)
         {
             if(q.PlayerName.equals(p.getName()))
@@ -66,20 +87,16 @@ public class mListener implements Listener
     public void onPlayerMove(PlayerMoveEvent e)
     {
         Player p = e.getPlayer();
-        if(p.getLocation().getY() < 0)
-        {
-            if(!Utils.IsPlayerWorld(p.getWorld())) return;
-
+        if(Utils.IsPlayerWorld(p.getWorld())) {
             World w = p.getWorld();
-            if(Utils.IsPlayerWorld(w))
-            {
+            if (p.getLocation().getY() < PluginConfig.Options().VoidTeleport) {
                 Location loc = w.getSpawnLocation();
                 Block block = w.getBlockAt(loc.getBlockX(), loc.getBlockY() - 1, loc.getBlockZ());
 
-                if(block.isEmpty() || block.isLiquid()) {
+                if (block.isEmpty() || block.isLiquid()) {
                     block.setType(Material.GLASS);
                 }
-
+                p.setFallDistance(0);
                 p.teleport(w.getSpawnLocation());
             }
         }
@@ -87,8 +104,7 @@ public class mListener implements Listener
 
     @EventHandler
     public void OnPlayerPlaceBlock(BlockPlaceEvent e) {
-        if (Utils.IsPlayerWorld(e.getBlock().getWorld()))
-        {
+        if (Utils.IsPlayerWorld(e.getBlock().getWorld())) {
             Player p = e.getPlayer();
             World w = p.getWorld();
 
@@ -96,10 +112,14 @@ public class mListener implements Listener
                 e.setCancelled(true);
             }
 
-            if (e.getBlock().getX() > PluginConfig.Options().WorldSizeX ||
-                    e.getBlock().getZ() > PluginConfig.Options().WorldSizeZ ||
-                    e.getBlock().getX() < -PluginConfig.Options().WorldSizeX ||
-                    e.getBlock().getZ() < -PluginConfig.Options().WorldSizeX) {
+            if (
+                e.getBlock().getX() > PluginConfig.Options().WorldSizeX ||
+                e.getBlock().getZ() > PluginConfig.Options().WorldSizeZ ||
+                e.getBlock().getX() < -PluginConfig.Options().WorldSizeX ||
+                e.getBlock().getZ() < -PluginConfig.Options().WorldSizeZ ||
+                e.getBlock().getY() > PluginConfig.Options().WorldSizeY ||
+                e.getBlock().getY() < PluginConfig.Options().WorldSizeNY )
+            {
                 e.setCancelled(true);
             }
         }
@@ -149,23 +169,19 @@ public class mListener implements Listener
     {
         if(Utils.IsPlayerWorld(e.getDamager().getWorld()) || Utils.IsPlayerWorld(e.getEntity().getWorld()))
         {
-            if(e.getDamager().getType() == EntityType.PLAYER)
+            if (e.getDamager().getType() == EntityType.PLAYER)
             {
                 Player p = (Player) e.getDamager();
-
-                if(!Utils.IsMember(p, p.getWorld()))
-                {
-                    e.setCancelled(false);
+                if (!Utils.IsMember(p, p.getWorld())) {
+                    e.setCancelled(true);
                 }
             }
 
-            if(e.getEntity().getType() == EntityType.PLAYER)
+            if (e.getEntity().getType() == EntityType.PLAYER)
             {
                 Player p = (Player) e.getEntity();
-
-                if(!Utils.IsMember(p, p.getWorld()))
-                {
-                    e.setCancelled(false);
+                if (!Utils.IsMember(p, p.getWorld())) {
+                    e.setCancelled(true);
                 }
             }
         }
@@ -176,13 +192,13 @@ public class mListener implements Listener
     {
         if(e.getWhoClicked() instanceof Player)
         {
-            if (GUI.Menu.OnMenu(Bukkit.getPlayer(e.getWhoClicked().getUniqueId())))
+            if (GUIManager.Menu.OnMenu(Bukkit.getPlayer(e.getWhoClicked().getUniqueId())))
             {
                 e.setCancelled(true);
                 ItemStack clicked = e.getCurrentItem();
                 if (clicked == null || clicked.getType() == Material.AIR) return;
                 Player p = (Player) e.getWhoClicked();
-                GUI.OnItem(p, clicked ,e.getSlot());
+                GUIManager.OnItem(p, clicked ,e.getSlot());
             }
         }
     }
@@ -192,13 +208,13 @@ public class mListener implements Listener
     {
         if(e.getPlayer() instanceof Player)
         {
-            GUI.Menu.remove(Bukkit.getPlayer(e.getPlayer().getUniqueId()));
+            GUIManager.Menu.remove(Bukkit.getPlayer(e.getPlayer().getUniqueId()));
         }
     }
 
     @EventHandler
     public void OnPlayerQuit(PlayerQuitEvent e)
     {
-        GUI.Menu.remove(e.getPlayer());
+        GUIManager.Menu.remove(e.getPlayer());
     }
 }

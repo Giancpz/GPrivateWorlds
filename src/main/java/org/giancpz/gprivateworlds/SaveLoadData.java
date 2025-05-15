@@ -3,6 +3,7 @@ package org.giancpz.gprivateworlds;
 import org.giancpz.gprivateworlds.Internal.PlayerInfo;
 import org.giancpz.gprivateworlds.Internal.WorldInfo;
 
+import java.util.List;
 import java.util.UUID;
 
 public class SaveLoadData
@@ -36,6 +37,11 @@ public class SaveLoadData
     public static void DeleteWorldInfo(WorldInfo worldInfo)
     {
         Main.Singleton().db.DeleteWorldInfo(worldInfo);
+    }
+
+    public static List<String> FindWorlds(int offset, int limit)
+    {
+        return Main.Singleton().db.FindWorlds(offset, limit);
     }
 
     public static PlayerInfo loadPlayerInfo(String playerUID) {

@@ -4,8 +4,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.giancpz.gprivateworlds.Internal.PlayerInfo;
 import org.giancpz.gprivateworlds.Internal.WorldInfo;
-
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,6 +19,9 @@ public class sql
     private static final String INSERT_WORLD = "INSERT INTO gprivateworlds_worlds(" + SaveLoadData.WORLD_UUID_1 + ", " + SaveLoadData.OWNER_UUID_2 + ", " + SaveLoadData.OWNER_NAME_3 + ", " + SaveLoadData.MEMBERS_UUID_4 + ", " + SaveLoadData.SPAWN_LOCATION_5 + ", " + SaveLoadData.CREATION_DATE_6 + ", " + SaveLoadData.OPTIONS_7 + ", " + SaveLoadData.CHECKSUM_8 + ") VALUES(?,?,?,?,?,?,?,?)";
 
     private static final String DELETE_WORLD = "DELETE FROM gprivateworlds_worlds WHERE " + SaveLoadData.WORLD_UUID_1 + " = ?";
+
+    private static final String FIND_WORLDS = "SELECT owner_name FROM gprivateworlds_worlds LIMIT ? OFFSET ?;";
+
 
     private static final String UPDATE_WORLD = "UPDATE gprivateworlds_worlds "
             + "SET "
@@ -36,22 +39,21 @@ public class sql
             + SaveLoadData.MEMBER_UUID_3 + " = ? "
             + "WHERE " + SaveLoadData.PLAYER_UUID_1 + " = ?";
 
-
     HikariDataSource dataSource;
     public void initializeDatabase()
     {
         try
         {
             HikariConfig config = new HikariConfig();
-            if(PluginConfig.Options().playerstoragemethod == PluginConfig.Storagemethod.MARIADB)
+            if(PluginConfig.Options().playerstoragemethod == PluginConfig.Storagemethod.MYSQL || PluginConfig.Options().playerstoragemethod == PluginConfig.Storagemethod.MARIADB)
             {
-                Print.info("Initializing MariaDB database...");
-                String address = PluginConfig.Mysql.getConfig().address + ":" + PluginConfig.Mysql.getConfig().port;
+                Print.info("Initializing MySQL database...");
+                String address = PluginConfig.Options().mysql.address + ":" + PluginConfig.Options().mysql.port;
                 String url = String.format("jdbc:mysql://%s/%s?useSSL=%s", address, PluginConfig.Options().mysql.database, PluginConfig.Options().mysql.ssl);
                 config.setJdbcUrl(url);
-                config.setUsername(PluginConfig.Mysql.getConfig().username);
-                config.setPassword(PluginConfig.Mysql.getConfig().password);
-                config.setMaximumPoolSize(PluginConfig.Mysql.getConfig().maxpoolsize);
+                config.setUsername(PluginConfig.Options().mysql.username);
+                config.setPassword(PluginConfig.Options().mysql.password);
+                config.setMaximumPoolSize(PluginConfig.Options().mysql.maxpoolsize);
 
                 dataSource = new HikariDataSource(config);
 
@@ -223,6 +225,29 @@ public class sql
         }
     }
 
+    public List<String> FindWorlds(int offset, int limit)
+    {
+        try (Connection conexion = dataSource.getConnection();
+             PreparedStatement statement = conexion.prepareStatement(FIND_WORLDS)) {
+
+            statement.setInt(1, limit);
+            statement.setInt(2, offset);
+
+            ResultSet resultados = statement.executeQuery();
+
+            List<String> worlds = new ArrayList<>();
+            while (resultados.next()) {
+                String ownerName = resultados.getString(SaveLoadData.OWNER_NAME_3);
+                worlds.add(ownerName);
+            }
+            return worlds;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public WorldInfo FindWorldByUUID(UUID uuid) {
 
         try (Connection connection = dataSource.getConnection();
@@ -239,7 +264,7 @@ public class sql
                     worldInfo.spawnLocation.toObject(results.getString(SaveLoadData.SPAWN_LOCATION_5));
                     worldInfo.creationDate.toObject(results.getString(SaveLoadData.CREATION_DATE_6));
 
-                    worldInfo.options.Set(results.getString(SaveLoadData.OPTIONS_7));
+                    worldInfo.options.GetValuesFromString(results.getString(SaveLoadData.OPTIONS_7));
 
                     worldInfo.checkSum = results.getString(SaveLoadData.CHECKSUM_8);
 

@@ -55,7 +55,7 @@ public class Utils
     {
         Internal.PlayerInfo playerInfo = AsyncGetPlayerInfoWithName(player);
 
-        return playerInfo.WorldUUID != null;
+        return playerInfo != null && playerInfo.WorldUUID != null;
     }
 
     public static boolean AsyncHasWorld(Internal.PlayerInfo player)

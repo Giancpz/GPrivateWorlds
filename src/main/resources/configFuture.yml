@@ -1,0 +1,121 @@
+version: 2
+
+#---------------------------------------------------------------------------------------------#
+#                                                                                             #
+#  If you just want to use this plugin with a basic setup, just configure the world section.  #
+#                                                                                             #
+#---------------------------------------------------------------------------------------------#
+
+# * WORLD SECTION *
+
+# Directory (folder name) of the template that will be used when the player creates a world
+world-template: 'worldtemplate'
+
+# The limit of the world that the player can break and build
+world-limit:
+    x: 64
+    y: 64
+    ny: -32
+    z: 64
+
+default-spawn-location:
+    x: 0
+    y: 10
+    z: 0
+
+# Note: Case-insensitive: does not matter if uppercase or lowercase
+game-rules:
+    - 'doDaylightCycle true'
+    - 'pvp false'
+    # - 'keepInventory false'
+    # - 'doMobSpawning false'
+    # - 'doWeatherCycle false'
+    # - 'doMobLoot false'
+    # - 'fallDamage false'
+
+default-options:
+    - 'pvp false'
+    - 'visibility false'
+
+multi-member: true
+accept-visit: true
+enabled-pvp: false
+view-distance: 8
+simulation-distance: 8
+world-border: 200
+
+# * END OF WORLD SECTION * #
+
+# ------------------------------------------------------- #
+
+# * STORAGE SECTION *
+
+# IMPORTANT: You can't use h2 if you're using multi-node.
+# Options:
+#   - h2
+#   - mysql
+storage-method: h2
+
+# Change this to use MySQL
+storage-method-config:
+    address: localhost
+    port: 3306
+    username: root
+    password: ''
+    database: minecraft
+    ssl: false
+    maximum-pool-size: 10
+
+# Options:
+#   - local
+#   - ftp
+world-storage-method: local
+
+ftp-config:
+    address: localhost
+    port: 21
+    username: root
+    password: ''
+    remote-directory: /worlds
+    passive-mode: true
+    tsl: false
+
+# * END OF STORAGE SECTION * #
+
+# ------------------------------------------------------- #
+
+# * MULTI-MODE SECTION * #
+# WARNING: The multi-node function is in experimental mode.
+
+# Options:
+#   - local   =>  If you want to use one server to load the worlds.
+#   - main    =>  Load and route players between nodes.
+#   - client  =>  Load the worlds received by the main node.
+#   - router  =>  Route players but will not load the worlds.
+
+# IMPORTANT: Make sure you only have one MAIN node.
+
+# Note: Local mode does not mean that you cannot use BungeeCord;
+#       it means that it will be an independent node and will not distribute players.
+#       It is the best option if you do not want to configure any save method.
+#       You can use a database and an FTP server if you need it.
+
+# VERY IMPORTANT: To use multi-node, you must set up an FTP server
+
+node-mode: local
+
+# This option will only affect the client node.
+# NOTE: The name of the node must match exactly how it is named in BungeeCord.
+node-name: namehere
+
+rabbitmq-config:
+    address: localhost
+    port: 5672
+    username: guest
+    password: guest
+    vhost: '/'
+
+# * END OF MULTI-NODE SECTION * #
+
+# If you don't want to see too many messages in the console, don't touch this.
+debug: false

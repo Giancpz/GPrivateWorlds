@@ -2,6 +2,8 @@ package org.giancpz.gprivateworlds;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,10 +15,27 @@ public class JoinManager
 
     public void Invite(Player execute, String invite)
     {
+        new BukkitRunnable()
+        {
+            @Override
+            public void run()
+            {
+                internal_invite(execute, invite);
+            }
+        }.runTaskAsynchronously(Main.Singleton());
+    }
+
+    public void internal_invite(Player execute, String invite)
+    {
         for (Invitation invitation : invitations)
         {
             if(invitation.from.equals(execute.getName()) && invitation.to.equals(invite)) return;
-            else PlayerMessage.Send(execute, "You already invited this player", PlayerMessage.MessageType.ERROR);
+            else
+            {
+                String[] names = {invite};
+                Messages.Send(execute, Messages.Get().invitationNotSent, names);
+            }
+                //PlayerMessage.Send(execute, "You already invited this player", PlayerMessage.MessageType.ERROR);
         }
 
         PlayerInfo pi1 = Utils.AsyncGetPlayerInfoWithName(execute.getName());
@@ -31,19 +50,25 @@ public class JoinManager
                 if (!Utils.AsyncHasWorld(invite))
                 {
                     SendInvitation(execute.getName(), invite);
-                    PlayerMessage.Send(execute, "Player invited", PlayerMessage.MessageType.INFO);
+                    String[] args = {invite};
+                    Messages.Send(execute, Messages.Get().invitationSent, args);
+                    //PlayerMessage.Send(execute, "Player invited", PlayerMessage.MessageType.INFO);
                 } else {
-                    PlayerMessage.Send(execute, "The player you invite already belongs to a world", PlayerMessage.MessageType.ERROR);
+                    String[] args = {invite};
+                    Messages.Send(execute, Messages.Get().invitationNotSent1, args);
+                   // PlayerMessage.Send(execute, "The player you invite already belongs to a world", PlayerMessage.MessageType.ERROR);
                 }
             }
             else
             {
-                PlayerMessage.Send(execute, "You do not own a world", PlayerMessage.MessageType.ERROR);
+                Messages.Send(execute,Messages.Get().worldNotOwn, null);
+                //PlayerMessage.Send(execute, "You do not own a world", PlayerMessage.MessageType.ERROR);
             }
         }
         else
         {
-            PlayerMessage.Send(execute, "you don't have a world", PlayerMessage.MessageType.ERROR);
+            Messages.Send(execute,Messages.Get().worldNotFoundPlayer, null);
+            //PlayerMessage.Send(execute, "you don't have a world", PlayerMessage.MessageType.ERROR);
         }
     }
 
@@ -52,11 +77,28 @@ public class JoinManager
         invitations.add(new Invitation(name1, name2));
         Player p = Bukkit.getPlayer(name2);
         if (p != null) {
-            PlayerMessage.Send(p, name1 + " Invited you", PlayerMessage.MessageType.INFO);
+
+            String[] names = {name1};
+            Messages.Send(p, Messages.Get().invitationReceived, names);
+
+            //PlayerMessage.Send(p, name1 + " Invited you", PlayerMessage.MessageType.INFO);
         }
     }
 
     public void Accept(Player player, String accept)
+    {
+        new BukkitRunnable()
+        {
+            @Override
+            public void run()
+            {
+                internal_Accept(player, accept);
+            }
+        }.runTaskAsynchronously(Main.Singleton());
+    }
+
+
+    public void internal_Accept(Player player, String accept)
     {
         int count = 0;
 
@@ -70,7 +112,8 @@ public class JoinManager
         }
 
         if(count == 0) {
-            Print.debug("No invitations to accept");
+            Messages.Send(player, Messages.Get().invitationNot, null);
+            //Print.debug("No invitations to accept");
         }
 
         if(count == 1)
@@ -98,14 +141,17 @@ public class JoinManager
                     PlayerInfo FromInfo = Utils.AsyncGetPlayerInfoWithName(from);
                     AdminWorld.AddMember(getWorldInfo(FromInfo.WorldUUID), Utils.AsyncGetPlayerInfoWithName(to));
                     Player player = Bukkit.getPlayer(to);
-                    PlayerMessage.Send(player, "Invitation accepted! use /pw home", PlayerMessage.MessageType.INFO);
+
+                    String[] names = {from};
+                    Messages.Send(player, Messages.Get().worldJoinPlayer, names);
+                    return;
+                    //PlayerMessage.Send(player, "Invitation accepted! use /pw home", PlayerMessage.MessageType.INFO);
                 }
             }
         }
-        else
-        {
-            Print.debug("Error 3");
-        }
+
+        Player player = Bukkit.getPlayer(to);
+        Messages.Send(player, Messages.Get().worldNotJoin, null);
     }
 
     public static class Invitation

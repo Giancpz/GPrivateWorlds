@@ -1,7 +1,14 @@
 package org.giancpz.gprivateworlds;
 
-import org.bukkit.configuration.file.FileConfiguration;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -9,14 +16,18 @@ import static org.giancpz.gprivateworlds.WorldOptions.*;
 
 public class PluginConfig
 {
-    int ConfigVersion = 1;
+    public YamlDocument config;
+
     int WorldSizeX;
     int WorldSizeY;
     int WorldSizeNY;
     int WorldSizeZ;
+    int VoidTeleport;
     int ViewDistance;
     int SimulationDistance;
     int WorldBorder;
+    Long queuePeriod = 10L;
+    int inactivity = 900;
     boolean SpawnMobs;
     boolean MultiMembers;
     boolean AcceptVisits;
@@ -26,7 +37,8 @@ public class PluginConfig
     Ftpconfig ftpconfig = new Ftpconfig();
     Storagemethod playerstoragemethod;
     Worldsstoragemethod worldstoragemethod;
-    Nodemode nodemode;
+    Nodemode nodemode = Nodemode.LOCAL; // TEMPORAL
+    List<String> defaultWorldOptions = new ArrayList<>();
     List<String> gamerules = new ArrayList<>();
 
     String PlayerDataDirectory = "GPrivateWorlds/local/playerdata/";
@@ -44,6 +56,7 @@ public class PluginConfig
     protected enum Storagemethod
     {
         H2,
+        MYSQL,
         MARIADB
     }
 
@@ -62,11 +75,6 @@ public class PluginConfig
         String database;
         int maxpoolsize;
         boolean ssl;
-
-        public static Mysql getConfig()
-        {
-            return Main.Singleton().pluginOptions.mysql;
-        }
     }
 
     public static class Ftpconfig
@@ -80,58 +88,67 @@ public class PluginConfig
         boolean tsl;
     }
 
-    public static void LoadConfig()
+
+    public void LoadConfig()
     {
-        PluginConfig options = Main.Singleton().pluginOptions;
-        FileConfiguration config = Main.Singleton().getConfig();
+        try {
+            config = YamlDocument.create(new File(Main.Singleton().getDataFolder(), "config.yml"), Main.Singleton().getResource("config.yml"),
+                    GeneralSettings.DEFAULT, LoaderSettings.builder().setAutoUpdate(true).build(), DumperSettings.DEFAULT, UpdaterSettings.builder().setVersioning(new BasicVersioning("version")).build());
+            config.update();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
 
-        options.ConfigVersion = config.getInt("ConfigVersion");
+        queuePeriod = config.getLong("queue-period");
+        inactivity = config.getInt("inactivity-time");
 
-        options.playerstoragemethod = Enum.valueOf(Storagemethod.class, Objects.requireNonNull(config.getString("storage-method")).toUpperCase());
+        playerstoragemethod = Enum.valueOf(Storagemethod.class, Objects.requireNonNull(config.getString("storage-method")).toUpperCase());
 
         // Mysql
-        options.mysql.address = config.getString("storage-method-config.address");
-        options.mysql.port = config.getInt("storage-method-config.port");
-        options.mysql.username = config.getString("storage-method-config.username");
-        options.mysql.password = config.getString("storage-method-config.password");
-        options.mysql.database = config.getString("storage-method-config.database");
-        options.mysql.maxpoolsize = config.getInt("storage-method-config.maximum-pool-size");
-        options.mysql.ssl = config.getBoolean("storage-method-config.ssl");
+        mysql.address = config.getString("storage-method-config.address");
+        mysql.port = config.getInt("storage-method-config.port");
+        mysql.username = config.getString("storage-method-config.username");
+        mysql.password = config.getString("storage-method-config.password");
+        mysql.database = config.getString("storage-method-config.database");
+        mysql.maxpoolsize = config.getInt("storage-method-config.maximum-pool-size");
+        mysql.ssl = config.getBoolean("storage-method-config.ssl");
 
-        options.nodemode = Enum.valueOf(Nodemode.class, Objects.requireNonNull(config.getString("node-mode")).toUpperCase());
+        // options.nodemode = Enum.valueOf(Nodemode.class, Objects.requireNonNull(config.getString("node-mode")).toUpperCase());
 
-        options.worldstoragemethod = Enum.valueOf(Worldsstoragemethod.class, Objects.requireNonNull(config.getString("world-storage-method")).toUpperCase());
-
+        worldstoragemethod = Enum.valueOf(Worldsstoragemethod.class, Objects.requireNonNull(config.getString("world-storage-method")).toUpperCase());
         //ftp
-        options.ftpconfig.address = config.getString("ftp-config.address");
-        options.ftpconfig.port = config.getInt("ftp-config.port");
-        options.ftpconfig.username = config.getString("ftp-config.username");
-        options.ftpconfig.password = config.getString("ftp-config.password");
-        options.ftpconfig.remotedirectory = config.getString("ftp-config.remote-directory");
-        options.ftpconfig.passivemode = config.getBoolean("ftp-config.passive-mode");
-        options.ftpconfig.tsl = config.getBoolean("ftp-config.tsl");
+        ftpconfig.address = config.getString("ftp-config.address");
+        ftpconfig.port = config.getInt("ftp-config.port");
+        ftpconfig.username = config.getString("ftp-config.username");
+        ftpconfig.password = config.getString("ftp-config.password");
+        ftpconfig.remotedirectory = config.getString("ftp-config.remote-directory");
+        ftpconfig.passivemode = config.getBoolean("ftp-config.passive-mode");
+        ftpconfig.tsl = config.getBoolean("ftp-config.tsl");
 
-        options.WorldSizeX = config.getInt("world-limit.x");
-        options.WorldSizeY = config.getInt("world-limit.y");
-        options.WorldSizeNY = config.getInt("world-limit.ny");
-        options.WorldSizeZ = config.getInt("world-limit.z");
+        WorldSizeX = config.getInt("world-limit.x");
+        WorldSizeY = config.getInt("world-limit.y");
+        WorldSizeNY = config.getInt("world-limit.ny");
+        WorldSizeZ = config.getInt("world-limit.z");
 
-        options.SimulationDistance = config.getInt("simulation-distance");
-        options.WorldBorder = config.getInt("world-border");
-        options.ViewDistance = config.getInt("view-distance");
+        SimulationDistance = config.getInt("simulation-distance");
+        WorldBorder = config.getInt("world-border");
+        ViewDistance = config.getInt("view-distance");
 
-        options.spawnLocation = new SpawnLocation();
-        options.spawnLocation.set(config.getInt("spawn-location.x"),
-                            config.getInt("spawn-location.y"),
-                            config.getInt("spawn-location.z"));
+        spawnLocation = new SpawnLocation();
 
-        options.SpawnMobs = config.getBoolean("spawn-mobs");
-        options.MultiMembers = config.getBoolean("multi-members");
-        options.AcceptVisits = config.getBoolean("accept-visit");
+        spawnLocation.set(config.getInt("default-spawn-location.x"),
+                            config.getInt("default-spawn-location.y"),
+                            config.getInt("default-spawn-location.z"));
 
-        options.gamerules = config.getStringList("game-rules");
+        VoidTeleport = config.getInt("void-teleport");
 
-        options.debug = config.getBoolean("debug");
+        SpawnMobs = config.getBoolean("spawn-mobs");
+        MultiMembers = config.getBoolean("multi-members");
+        AcceptVisits = config.getBoolean("accept-visit");
+        gamerules = config.getStringList("game-rules");
+        defaultWorldOptions = config.getStringList("default-world-options");
+
+        debug = config.getBoolean("debug");
     }
 
     public static PluginConfig Options()

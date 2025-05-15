@@ -13,38 +13,43 @@ public class WorldOptions
         public boolean Visibility = true;
         public boolean pvp = false;
 
-        String TestAllValues = "pvp:false,visibility:true";
+        List<String> Options = new ArrayList();
 
-        List<String> values;
-
-        public void Set(String AllValues) {
-            Print.debug("Values " + AllValues);
-            values = Arrays.asList(AllValues.split(","));
-
-            if (!values.isEmpty()) {
-
-                for (String v : values) {
-                    String[] dat = v.split(" ");
-
-                    if (dat.length >= 2) {
-                        String key = dat[0];
-                        String value = dat[1];
-                        switch (key) {
-                            case "visibility":
-                                Visibility = Boolean.parseBoolean(value);
-                                Print.debug("Visibility: " + Visibility);
-                                break;
-                            case "pvp":
-                                pvp = Boolean.parseBoolean(value);
-                                Print.debug("pvp: " + pvp);
-                                break;
-                        }
+        public void Set()
+        {
+            for (String v : Options)
+            {
+                String[] dat = v.split(":");
+                if (dat.length >= 2)
+                {
+                    String key = dat[0];
+                    String value = dat[1];
+                    switch (key)
+                    {
+                        case "visibility":
+                            Visibility = Boolean.parseBoolean(value);
+                            break;
+                        case "pvp":
+                            pvp = Boolean.parseBoolean(value);
+                            break;
                     }
                 }
             }
         }
 
-        public String ToText() {
+        public void SetDefult()
+        {
+            Options =  PluginConfig.Options().defaultWorldOptions;
+        }
+
+        public void GetValuesFromString(String options)
+        {
+            String[] values = options.split(",");
+            Options = Arrays.asList(values);
+        }
+
+        public String ToText()
+        {
             String str = "pvp " + pvp + ",visibility " + Visibility;
             Print.debug(str);
             return str;

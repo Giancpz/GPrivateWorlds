@@ -9,6 +9,7 @@ import org.giancpz.gprivateworlds.Queue.TaskInfo;
 import org.giancpz.gprivateworlds.WorldOptions.*;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -63,8 +64,9 @@ public class Internal
 
             worldInfo.world = world;
 
-            if(world != null) {
-
+            if(world != null)
+            {
+                world.setKeepSpawnInMemory(false);
                 world.setSpawnLocation(worldInfo.spawnLocation.x, worldInfo.spawnLocation.y, worldInfo.spawnLocation.z);
                 //world.setViewDistance(PluginOptions.Options().ViewDistance);
                 //world.setSimulationDistance(PluginOptions.Options().SimulationDistance);
@@ -110,7 +112,7 @@ public class Internal
 
         WorldInfo worldInfo = new WorldInfo();
         LocalDate localDate = LocalDate.now();
-        worldInfo.options.Set(worldInfo.options.TestAllValues);
+        worldInfo.options.SetDefult();
 
         Internal.PlayerInfo p = Utils.AsyncGetPlayerInfoWithName(playername);
 
@@ -153,7 +155,8 @@ public class Internal
 
         boolean b = Bukkit.unloadWorld(worldInfo.world, true);
 
-        if(b) {
+        if(b)
+        {
             Print.info("World " + worldInfo.uuid + " unloaded");
             try
             {
@@ -212,6 +215,7 @@ public class Internal
         public SpawnLocation spawnLocation = new SpawnLocation();
         public Options options = new Options();
         public Gamerules gamerules = new Gamerules();
+        public Instant lastPlayer = Instant.now();
     }
 
     public static WorldInfo getWorldInfo(UUID WorldUUID)

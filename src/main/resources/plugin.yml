@@ -4,7 +4,15 @@ main: org.giancpz.gprivateworlds.Main
 api-version: '1.13'
 
 commands:
-    privateworld:
+    gprivateworlds:
         description: privateworld
         aliases: pw
         usage: /<command> <create|home|visit|accept|invite|kick|leave|setspawn|delete>
+
+permissions:
+    gprivateworlds.user:
+        description: Normal user permission
+        default: true
+    gprivateworlds.template.edit:
+        description: Template edit permission
+        default: op

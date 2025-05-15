@@ -30,8 +30,6 @@ public class Zip {
                     // Escribir el contenido del archivo
                     try (FileOutputStream fos = new FileOutputStream(nuevoArchivo)) {
                         byte[] buffer = new byte[2048];
-
-
                         int longitud;
                         while ((longitud = zis.read(buffer)) > 0) {
                             fos.write(buffer, 0, longitud);

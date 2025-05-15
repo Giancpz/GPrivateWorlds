@@ -1,7 +1,6 @@
 package org.giancpz.gprivateworlds;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class PlayerMessage
@@ -37,6 +36,9 @@ public class PlayerMessage
                     player = toPlayer;
                 }
 
+                //Messages.Send(player, Messages.Get().worldCreated, null);
+
+                /*
                 if(player != null) {
                     switch(messageType) {
                         case INFO:
@@ -46,6 +48,7 @@ public class PlayerMessage
                             player.sendMessage(ChatColor.RED +  message);
                     }
                 }
+                */
             }
         }
         else
